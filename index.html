@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Inclusive & Safe Comment Section</title>
+  <title>SafeComment</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -11,12 +11,8 @@
       theme: {
         extend: {
           colors: {
-            accent: '#10b981',
-            accentHover: '#34d399',
-            surface: '#1e1e2e',
-            surfaceLight: '#2a2a3c',
-            surfaceLighter: '#363649',
-            border: '#3f3f5c',
+            accent: '#ffffff',
+            accentHover: '#d4d4d4',
           },
           fontFamily: {
             sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
@@ -28,131 +24,297 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #1e1e2e; }
-    ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 3px; }
-
-    /* Fade-in animation */
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(18px); }
-      to   { opacity: 1; transform: translateY(0); }
+    body {
+      background: #000000;
     }
-    .comment-enter { animation: fadeInUp 0.4s ease-out forwards; }
+
+    /* Subtle ambient glow */
+    body::before {
+      content: '';
+      position: fixed;
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%);
+      top: -200px; left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Glassmorphism on black */
+    .glass {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .glass-strong {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-subtle {
+      background: rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .glass-input {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-input:focus {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05);
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
 
     /* Toast animation */
     @keyframes toastIn  { from { opacity: 0; transform: translateX(60px); } to { opacity: 1; transform: translateX(0); } }
     @keyframes toastOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(60px); } }
-    .toast-in  { animation: toastIn 0.35s ease-out forwards; }
-    .toast-out { animation: toastOut 0.3s ease-in forwards; }
-
-    /* Textarea */
-    textarea:focus { outline: none; box-shadow: 0 0 0 2px #10b981; }
+    .toast-in  { animation: toastIn 0.35s cubic-bezier(0.16,1,0.3,1) forwards; }
+    .toast-out { animation: toastOut 0.25s ease-in forwards; }
 
     /* Buttons */
     .btn-action {
-      transition: all 0.15s ease;
+      transition: all 0.2s cubic-bezier(0.16,1,0.3,1);
     }
     .btn-action:hover {
-      transform: scale(1.05);
+      transform: translateY(-1px);
     }
     .btn-action:active {
-      transform: scale(0.97);
+      transform: scale(0.96);
+    }
+
+    /* Like button active (pink glow) */
+    .like-active {
+      color: #f472b6 !important;
+      filter: drop-shadow(0 0 6px rgba(244, 114, 182, 0.4));
+    }
+    .like-active:hover {
+      filter: drop-shadow(0 0 10px rgba(244, 114, 182, 0.5));
+    }
+
+    /* Dislike button active (red glow) */
+    .dislike-active {
+      color: #f87171 !important;
+      filter: drop-shadow(0 0 6px rgba(248, 113, 113, 0.4));
+    }
+    .dislike-active:hover {
+      filter: drop-shadow(0 0 10px rgba(248, 113, 113, 0.5));
+    }
+
+    /* Pop animation on vote */
+    @keyframes votePop {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.25); }
+      100% { transform: scale(1); }
+    }
+    .vote-pop {
+      animation: votePop 0.35s cubic-bezier(0.16,1,0.3,1);
     }
 
     /* Translated box */
     .translated-box {
-      border-left: 3px solid #10b981;
+      border-left: 2px solid rgba(255, 255, 255, 0.2);
     }
+
+    /* Inner glow on cards */
+    .card-glow {
+      box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.04), 0 2px 16px -4px rgba(0,0,0,0.5);
+      transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    .card-glow:hover {
+      box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.06), 0 4px 24px -4px rgba(0,0,0,0.6);
+      border-color: rgba(255,255,255,0.1);
+    }
+
+    /* Select dropdown */
+    select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234b5563' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 28px;
+    }
+
+    /* Shimmer line */
+    .shimmer-line {
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+      background-size: 200% 100%;
+      animation: shimmer 4s linear infinite;
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    /* Fly-in ghost bubble */
+    .fly-ghost {
+      position: fixed;
+      z-index: 100;
+      pointer-events: none;
+      transition: none;
+    }
+
+    /* Strong glow on latest comment */
+    @keyframes latestGlow {
+      0%, 100% { box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.08), 0 0 34px 6px rgba(255,255,255,0.08); }
+      50%      { box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.12), 0 0 46px 10px rgba(255,255,255,0.12); }
+    }
+    .latest-comment {
+      border-color: rgba(255,255,255,0.2) !important;
+      animation: latestGlow 2.2s ease-in-out infinite;
+    }
+
+    /* Dynamic grid layout — strict max 4 columns */
+    .comment-grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: 1fr;
+      transition: all 0.3s ease;
+      align-items: stretch;
+    }
+    .comment-grid.cols-1 {
+      grid-template-columns: 1fr;
+      max-width: 480px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .comment-grid.cols-2 {
+      grid-template-columns: repeat(2, 50%);
+      width: 100vw;
+      max-width: 100vw;
+      margin-left: calc(50% - 50vw);
+      gap: 0;
+    }
+    .comment-grid.cols-3 {
+      grid-template-columns: repeat(3, 33.333333%);
+      width: 100vw;
+      max-width: 100vw;
+      margin-left: calc(50% - 50vw);
+      gap: 0;
+    }
+    .comment-grid.cols-4 {
+      grid-template-columns: repeat(4, 25%);
+      width: 100vw;
+      max-width: 100vw;
+      margin-left: calc(50% - 50vw);
+      gap: 0;
+    }
+    @media (max-width: 680px) {
+      .comment-grid.cols-3 { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 480px) {
+      .comment-grid.cols-3,
+      .comment-grid.cols-2 { grid-template-columns: 1fr; max-width: 100%; }
+    }
+
+    .comment-grid > div {
+      margin: 6px;
+    }
+
+    /* Context menus */
+    .context-menu {
+      background: rgba(14, 14, 14, 0.92);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+    }
+    .menu-dot {
+      line-height: 1;
+      letter-spacing: 1px;
+    }
+
+    /* Inline editor */
+    .inline-editor {
+      caret-color: #ffffff;
+      cursor: text;
+      outline: none;
+    }
+    .inline-editor:focus {
+      outline: none;
+    }
+
+    /* Input bar focus */
+    input:focus { outline: none; }
+
+    * { position: relative; z-index: 1; }
+    body::before { position: fixed; z-index: 0; }
   </style>
 </head>
-<body class="bg-[#121220] text-gray-200 font-sans min-h-screen flex flex-col">
+<body class="text-gray-300 font-sans min-h-screen flex flex-col">
 
   <!-- ===== Toast Container ===== -->
   <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-3 max-w-sm"></div>
 
   <!-- ===== Header ===== -->
-  <header class="bg-surface/80 backdrop-blur-md border-b border-border sticky top-0 z-40">
-    <div class="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
+  <header class="glass-strong sticky top-0 z-40 border-b border-white/[0.04]">
+    <div class="max-w-3xl mx-auto px-5 py-4 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-xl bg-accent/20 flex items-center justify-center">
-          <span class="text-accent text-lg">💬</span>
+        <div class="w-9 h-9 rounded-xl bg-white/[0.06] flex items-center justify-center border border-white/[0.06]">
+          <span class="text-base">💬</span>
         </div>
         <div>
-          <h1 class="text-lg font-bold text-white leading-tight">SafeComment</h1>
-          <p class="text-xs text-gray-500">Inclusive & Safe Comment Section</p>
+          <h1 class="text-base font-semibold text-white leading-tight tracking-tight">SafeComment</h1>
+          <p class="text-[10px] text-gray-600 tracking-widest uppercase">Safe Space</p>
         </div>
       </div>
-      <!-- Preferred language selector -->
-      <div class="flex items-center gap-2">
-        <label for="langSelect" class="text-xs text-gray-400 hidden sm:inline">🌐 Translate to:</label>
-        <select id="langSelect"
-          class="bg-surfaceLight border border-border rounded-lg px-3 py-1.5 text-sm text-gray-300 focus:outline-none focus:ring-2 focus:ring-accent cursor-pointer">
-          <option value="en">English</option>
-          <option value="hi">हिन्दी</option>
-          <option value="es">Español</option>
-          <option value="fr">Français</option>
-          <option value="de">Deutsch</option>
-          <option value="ar">العربية</option>
-          <option value="zh">中文</option>
-          <option value="ta">தமிழ்</option>
-          <option value="ru">Русский</option>
-        </select>
-      </div>
+      <div class="text-[10px] text-gray-600 tracking-wider uppercase">Comments</div>
     </div>
   </header>
 
   <!-- ===== Main Content ===== -->
-  <main class="flex-1 max-w-2xl w-full mx-auto px-4 py-6 space-y-6">
+  <main class="flex-1 w-full mx-auto px-6 pt-6 pb-28 space-y-5">
 
     <!-- City banner -->
-    <div id="cityBanner" class="flex items-center gap-2 text-sm text-gray-400">
-      <span class="inline-block w-2 h-2 rounded-full bg-accent animate-pulse"></span>
+    <div id="cityBanner" class="flex items-center gap-2 text-xs text-gray-600">
+      <span class="inline-block w-1.5 h-1.5 rounded-full bg-white/30 animate-pulse"></span>
       <span id="cityText">Detecting your location…</span>
     </div>
 
-    <!-- ===== Compose Box ===== -->
-    <section class="bg-surface rounded-2xl border border-border p-5 space-y-3 shadow-lg shadow-black/20">
-      <div class="flex items-center justify-between">
-        <h2 class="text-sm font-semibold text-gray-300">Write a comment</h2>
-        <span id="charCount" class="text-xs text-gray-500">0 / 500</span>
-      </div>
-      <textarea id="commentInput" maxlength="500" rows="3"
-        placeholder="Share your thoughts in any language… 🌍"
-        class="w-full bg-surfaceLight border border-border rounded-xl px-4 py-3 text-sm text-gray-200 placeholder-gray-500 resize-none transition-shadow"></textarea>
-      <div class="flex items-center justify-between flex-wrap gap-2">
-        <p class="text-xs text-gray-500 italic">Special characters like &lt; &gt; { } [ ] \ | ^ % $ # * ~ ` are blocked.</p>
-        <div class="flex gap-2">
-          <button id="clearAllBtn"
-            class="px-4 py-2 text-xs rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors">
-            🗑️ Clear All
-          </button>
-          <button id="postBtn"
-            class="px-5 py-2 text-sm font-semibold rounded-lg bg-accent hover:bg-accentHover text-white transition-colors shadow-md shadow-accent/20">
-            Post Comment
-          </button>
-        </div>
-      </div>
-    </section>
-
     <!-- ===== Comment Count ===== -->
-    <div class="flex items-center justify-between">
-      <h3 id="commentCount" class="text-sm font-medium text-gray-400">0 Comments</h3>
-      <div class="h-px flex-1 ml-4 bg-border"></div>
+    <div class="flex items-center justify-between gap-4">
+      <h3 id="commentCount" class="text-xs font-medium text-gray-600 whitespace-nowrap uppercase tracking-wider">0 Comments</h3>
+      <div class="h-px flex-1 shimmer-line rounded-full"></div>
     </div>
 
     <!-- ===== Comments List ===== -->
-    <section id="commentsList" class="space-y-4"></section>
+    <section id="commentsList" class="comment-grid cols-1"></section>
 
   </main>
 
-  <!-- ===== Footer ===== -->
-  <footer class="border-t border-border py-6 mt-auto">
-    <p class="text-center text-xs text-gray-600 max-w-xl mx-auto leading-relaxed px-4">
-      Demo using localStorage + free public APIs. Comments stay in your browser.<br/>
-      Deployed via GitHub Pages for free public link.
-    </p>
-  </footer>
+  <!-- ===== Bottom Input Bar ===== -->
+  <div id="inputBar" class="fixed bottom-0 left-0 right-0 z-40 border-t border-white/[0.04]" style="background: rgba(0,0,0,0.85); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);">
+    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
+      <input id="commentInput" type="text" maxlength="500"
+        placeholder="Say something…"
+        class="flex-1 glass-input rounded-full px-5 py-3 text-sm text-gray-200 placeholder-gray-600 transition-all duration-200" />
+      <button id="sendBtn"
+        class="btn-action w-10 h-10 rounded-full bg-white/[0.08] hover:bg-white/[0.14] border border-white/[0.08] flex items-center justify-center transition-all"
+        aria-label="Send">
+        <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== Language Context Menu ===== -->
+  <div id="langMenu" class="fixed z-50 hidden context-menu rounded-xl p-3 w-[340px]">
+    <div class="text-xs text-gray-400 mb-2">Translate to</div>
+    <input id="langSearch" type="text" placeholder="Search language..."
+      class="w-full glass-input rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-600 mb-2" />
+    <div id="langList" class="max-h-72 overflow-y-auto space-y-1 pr-1"></div>
+  </div>
 
   <!-- ===== JavaScript ===== -->
   <script>
@@ -162,58 +324,145 @@
     const STORAGE_KEY   = 'safecomments_data';
     const LANG_KEY      = 'safecomments_lang';
     const CITY_KEY      = 'safecomments_city';
-    const FORBIDDEN_RE  = /[<>{}\[\]\\|^%$#*~`]/;
-    const REPEAT_RE     = /(.)\1{2,}/;                       // 3+ identical chars in a row
+    const VOTES_KEY     = 'safecomments_votes';
+    const USER_KEY      = 'safecomments_user_id';
+    const VIRTUALIZATION_THRESHOLD = 120;
+    const VIRTUAL_ROW_HEIGHT = 290;
+    const VIRTUAL_BUFFER_ROWS = 2;
+    // Block ALL special characters — only letters (any script), digits, spaces, and common punctuation allowed
+    // Allowed: letters, numbers, spaces, . , ! ? : ; ' " - ( ) newlines
+    const ALLOWED_RE    = /^[\p{L}\p{N}\s.,!?;:'"()\-\n\r]+$/u;
     const MAX_CHARS     = 500;
 
-    // Language display names
+    // Language display names & ISO codes
     const LANG_NAMES = {
-      en: 'English', hi: 'Hindi', es: 'Spanish', fr: 'French',
-      de: 'German',  ar: 'Arabic', zh: 'Chinese', ta: 'Tamil', ru: 'Russian'
+      en: 'English', hi: 'Hindi', bn: 'Bengali', te: 'Telugu', mr: 'Marathi',
+      ta: 'Tamil', ur: 'Urdu', gu: 'Gujarati', kn: 'Kannada', ml: 'Malayalam',
+      pa: 'Punjabi', or: 'Odia', as: 'Assamese', ne: 'Nepali', sa: 'Sanskrit',
+      sd: 'Sindhi', es: 'Spanish', fr: 'French', de: 'German', ar: 'Arabic',
+      zh: 'Chinese', ru: 'Russian', ja: 'Japanese', ko: 'Korean', pt: 'Portuguese'
     };
 
-    // 4 seed comments (English, Hindi, Spanish, Arabic)
+    const LANGUAGES = [
+      { code: 'hi', name: 'Hindi' },
+      { code: 'bn', name: 'Bengali' },
+      { code: 'te', name: 'Telugu' },
+      { code: 'mr', name: 'Marathi' },
+      { code: 'ta', name: 'Tamil' },
+      { code: 'ur', name: 'Urdu' },
+      { code: 'gu', name: 'Gujarati' },
+      { code: 'kn', name: 'Kannada' },
+      { code: 'ml', name: 'Malayalam' },
+      { code: 'pa', name: 'Punjabi' },
+      { code: 'or', name: 'Odia' },
+      { code: 'as', name: 'Assamese' },
+      { code: 'ne', name: 'Nepali' },
+      { code: 'sa', name: 'Sanskrit' },
+      { code: 'sd', name: 'Sindhi' },
+      { code: 'en', name: 'English' },
+      { code: 'es', name: 'Spanish' },
+      { code: 'fr', name: 'French' },
+      { code: 'de', name: 'German' },
+      { code: 'ar', name: 'Arabic' },
+      { code: 'zh', name: 'Chinese' },
+      { code: 'ru', name: 'Russian' },
+      { code: 'ja', name: 'Japanese' },
+      { code: 'ko', name: 'Korean' },
+      { code: 'pt', name: 'Portuguese' },
+    ];
+
+    // 4 seed comments
     const SEED_COMMENTS = [
-      { id: 1, text: 'This is such a welcoming and inclusive space! Love the multilingual support.', city: 'San Francisco', timestamp: Date.now() - 3600000, likes: 4, dislikes: 0 },
-      { id: 2, text: 'यह प्लेटफ़ॉर्म बहुत अच्छा है। हर भाषा में टिप्पणी कर सकते हैं!', city: 'Mumbai', timestamp: Date.now() - 7200000, likes: 3, dislikes: 0 },
-      { id: 3, text: '¡Me encanta esta sección de comentarios! Es muy segura y fácil de usar.', city: 'Madrid', timestamp: Date.now() - 10800000, likes: 5, dislikes: 0 },
-      { id: 4, text: 'هذا القسم رائع ويدعم جميع اللغات. شكراً لتوفير بيئة آمنة!', city: 'Dubai', timestamp: Date.now() - 14400000, likes: 2, dislikes: 0 },
+      { id: 1, text: 'This is such a welcoming and inclusive space! Love the multilingual support.', lang: 'en', city: 'San Francisco', timestamp: Date.now() - 3600000, likes: 4, dislikes: 0 },
+      { id: 2, text: 'यह प्लेटफ़ॉर्म बहुत अच्छा है। हर भाषा में टिप्पणी कर सकते हैं!', lang: 'hi', city: 'Mumbai', timestamp: Date.now() - 7200000, likes: 3, dislikes: 0 },
+      { id: 3, text: 'Me encanta esta seccion de comentarios! Es muy segura y facil de usar.', lang: 'es', city: 'Madrid', timestamp: Date.now() - 10800000, likes: 5, dislikes: 0 },
+      { id: 4, text: 'هذا القسم رائع ويدعم جميع اللغات. شكرا لتوفير بيئة آمنة!', lang: 'ar', city: 'Dubai', timestamp: Date.now() - 14400000, likes: 2, dislikes: 0 },
     ];
 
     let userCity = localStorage.getItem(CITY_KEY) || '';
 
     /* =========================================================
+       LANGUAGE DETECTION (simple heuristic)
+       ========================================================= */
+    function detectLanguage(text) {
+      // Check Unicode script ranges
+      if (/[\u0900-\u097F]/.test(text)) return 'hi';        // Devanagari → Hindi
+      if (/[\u0B80-\u0BFF]/.test(text)) return 'ta';        // Tamil
+      if (/[\u0600-\u06FF]/.test(text)) return 'ar';        // Arabic
+      if (/[\u4E00-\u9FFF]/.test(text)) return 'zh';        // Chinese
+      if (/[\u0400-\u04FF]/.test(text)) return 'ru';        // Cyrillic → Russian
+      // Latin-script detection by common words
+      const lower = text.toLowerCase();
+      if (/\b(el|los|las|una|esta|muy|es|por|como|que)\b/.test(lower)) return 'es';
+      if (/\b(le|la|les|des|une|est|pour|avec|dans|je|tu|il)\b/.test(lower)) return 'fr';
+      if (/\b(der|die|das|und|ist|ein|eine|nicht|mit|auf)\b/.test(lower)) return 'de';
+      return 'en';
+    }
+
+    /* =========================================================
        DOM REFERENCES
        ========================================================= */
     const $commentInput  = document.getElementById('commentInput');
-    const $charCount     = document.getElementById('charCount');
-    const $postBtn       = document.getElementById('postBtn');
-    const $clearAllBtn   = document.getElementById('clearAllBtn');
+    const $sendBtn       = document.getElementById('sendBtn');
     const $commentsList  = document.getElementById('commentsList');
     const $commentCount  = document.getElementById('commentCount');
-    const $langSelect    = document.getElementById('langSelect');
     const $cityText      = document.getElementById('cityText');
     const $toastContainer = document.getElementById('toastContainer');
+    const $langMenu      = document.getElementById('langMenu');
+    const $langSearch    = document.getElementById('langSearch');
+    const $langList      = document.getElementById('langList');
+
+    let pendingTranslate = null;
+    let editingCommentId = null;
+    let editDraftText = '';
+    let virtualRenderRaf = null;
+    let currentUserId = localStorage.getItem(USER_KEY) || '';
+    if (!currentUserId) {
+      currentUserId = `u_${Math.random().toString(36).slice(2, 10)}`;
+      localStorage.setItem(USER_KEY, currentUserId);
+    }
 
     /* =========================================================
        TOAST NOTIFICATIONS
        ========================================================= */
-    function showToast(message, type = 'info') {
+    function showToast(message, type = 'info', options = {}) {
       const colors = {
-        error:   'bg-red-600/90 border-red-500',
-        success: 'bg-accent/90 border-accent',
-        info:    'bg-surfaceLight border-border',
-        warn:    'bg-yellow-600/90 border-yellow-500',
+        error:   'bg-white/[0.06] border-red-500/20 text-red-400',
+        success: 'bg-white/[0.06] border-white/10 text-gray-300',
+        info:    'bg-white/[0.04] border-white/[0.06] text-gray-400',
+        warn:    'bg-white/[0.06] border-yellow-500/20 text-yellow-400',
       };
       const toast = document.createElement('div');
-      toast.className = `toast-in ${colors[type] || colors.info} border rounded-xl px-4 py-3 text-sm text-white shadow-xl backdrop-blur-md`;
-      toast.textContent = message;
+      toast.className = `toast-in ${colors[type] || colors.info} border rounded-xl px-4 py-3 text-xs shadow-2xl shadow-black/40`;
+      toast.style.cssText = 'backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);';
+
+      const row = document.createElement('div');
+      row.className = 'flex items-center gap-3';
+
+      const text = document.createElement('span');
+      text.textContent = message;
+      row.appendChild(text);
+
+      if (options.actionLabel && typeof options.onAction === 'function') {
+        const actionBtn = document.createElement('button');
+        actionBtn.className = 'text-xs text-white underline underline-offset-2 hover:text-gray-200 transition-colors';
+        actionBtn.textContent = options.actionLabel;
+        actionBtn.onclick = (e) => {
+          e.stopPropagation();
+          options.onAction();
+          toast.remove();
+        };
+        row.appendChild(actionBtn);
+      }
+
+      toast.appendChild(row);
       $toastContainer.appendChild(toast);
+      const duration = Number.isFinite(options.duration) ? options.duration : 3000;
       setTimeout(() => {
         toast.classList.remove('toast-in');
         toast.classList.add('toast-out');
         toast.addEventListener('animationend', () => toast.remove());
-      }, 3000);
+      }, duration);
     }
 
     /* =========================================================
@@ -228,6 +477,17 @@
 
     function saveComments(arr) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+    }
+
+    /** Vote tracking: { commentId: 'like' | 'dislike' } */
+    function loadVotes() {
+      try {
+        const raw = localStorage.getItem(VOTES_KEY);
+        return raw ? JSON.parse(raw) : {};
+      } catch { return {}; }
+    }
+    function saveVotes(obj) {
+      localStorage.setItem(VOTES_KEY, JSON.stringify(obj));
     }
 
     function getPreferredLang() {
@@ -255,78 +515,370 @@
        VALIDATION
        ========================================================= */
     function validateComment(text) {
-      if (!text.trim()) return false;
-      if (FORBIDDEN_RE.test(text)) return false;
-      if (REPEAT_RE.test(text)) return false;
-      return true;
+      if (!text.trim()) return { valid: false, reason: 'empty' };
+      if (!ALLOWED_RE.test(text)) return { valid: false, reason: 'special' };
+      return { valid: true };
     }
 
     /* =========================================================
        RENDER COMMENTS (newest first)
        ========================================================= */
-    function renderComments(animate = false) {
+    function getColumnCountForComments(count) {
+      if (count <= 1) return 1;
+      if (count <= 3) return 2;
+      if (count <= 6) return 3;
+      return 4;
+    }
+
+    function appendCommentCard(c, latestId, newId) {
+      const isLatest = c.id === latestId && c.id !== newId;
+      const card = document.createElement('div');
+      card.className = `glass rounded-2xl p-4 flex flex-col card-glow${isLatest ? ' latest-comment' : ''}`;
+      card.id = `comment-${c.id}`;
+
+      if (c.id === newId) {
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.95)';
+      }
+
+      const header = document.createElement('div');
+      header.className = 'flex items-center justify-between text-[11px] text-gray-600';
+
+      const leftMeta = document.createElement('span');
+      leftMeta.className = 'flex items-center gap-1.5';
+      leftMeta.innerHTML = `<svg class="w-3 h-3 text-gray-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>${escapeHTML(c.city)}`;
+
+      const rightMeta = document.createElement('div');
+      rightMeta.className = 'flex items-center gap-2';
+
+      const timeGroup = document.createElement('div');
+      timeGroup.className = 'flex items-center gap-1.5';
+      const timeEl = document.createElement('span');
+      timeEl.textContent = relativeTime(c.timestamp);
+      timeGroup.appendChild(timeEl);
+      if (c.editedAt) {
+        const editedEl = document.createElement('span');
+        editedEl.className = 'text-[10px] text-gray-300 border border-white/10 rounded px-1.5 py-0.5';
+        editedEl.textContent = 'Edited';
+        timeGroup.appendChild(editedEl);
+      }
+      rightMeta.appendChild(timeGroup);
+
+      if (!c.authorId || c.authorId === currentUserId) {
+        const menuWrap = document.createElement('div');
+        menuWrap.className = 'relative';
+
+        const menuBtn = document.createElement('button');
+        menuBtn.className = 'btn-action text-gray-500 hover:text-gray-300 text-base px-1 menu-dot';
+        menuBtn.textContent = '⋯';
+        menuBtn.onclick = (e) => {
+          e.stopPropagation();
+          toggleCommentMenu(c.id);
+        };
+
+        const menu = document.createElement('div');
+        menu.id = `menu-${c.id}`;
+        menu.className = 'hidden absolute right-0 bottom-full mb-1 context-menu rounded-lg p-1 min-w-[120px] z-40';
+        menu.innerHTML = `
+          <button class="w-full text-left px-2.5 py-1.5 text-xs text-gray-300 hover:text-white hover:bg-white/[0.06] rounded" data-action="edit">Edit</button>
+          <button class="w-full text-left px-2.5 py-1.5 text-xs text-red-400 hover:text-red-300 hover:bg-white/[0.06] rounded" data-action="delete">Delete</button>`;
+        menu.addEventListener('click', (e) => {
+          const target = e.target;
+          if (!(target instanceof HTMLElement)) return;
+          const action = target.dataset.action;
+          if (action === 'edit') editComment(c.id);
+          if (action === 'delete') deleteComment(c.id);
+        });
+
+        menuWrap.append(menuBtn, menu);
+        rightMeta.appendChild(menuWrap);
+      }
+
+      header.append(leftMeta, rightMeta);
+      card.appendChild(header);
+
+      const textEl = document.createElement('p');
+      textEl.className = 'text-gray-200 text-sm leading-relaxed whitespace-pre-wrap break-words flex-1 mt-2';
+      textEl.id = `text-${c.id}`;
+      textEl.textContent = editingCommentId === c.id ? editDraftText : c.text;
+
+      if (editingCommentId === c.id) {
+        textEl.setAttribute('contenteditable', 'true');
+        textEl.setAttribute('tabindex', '0');
+        textEl.spellcheck = true;
+        textEl.className += ' inline-editor';
+        textEl.addEventListener('input', () => {
+          const value = textEl.textContent || '';
+          if (value.length > MAX_CHARS) {
+            textEl.textContent = value.slice(0, MAX_CHARS);
+          }
+          editDraftText = textEl.textContent || '';
+        });
+        textEl.addEventListener('keydown', (e) => {
+          if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            e.preventDefault();
+            saveInlineEdit(c.id);
+          }
+          if (e.key === 'Escape') {
+            e.preventDefault();
+            cancelInlineEdit();
+          }
+        });
+      }
+      card.appendChild(textEl);
+
+      const transBox = document.createElement('div');
+      transBox.id = `trans-${c.id}`;
+      transBox.className = 'hidden';
+      card.appendChild(transBox);
+
+      const actions = document.createElement('div');
+      actions.className = 'flex items-center gap-2 pt-2 mt-auto';
+
+      if (editingCommentId === c.id) {
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'btn-action text-xs px-3 py-1.5 text-gray-500 hover:text-gray-300 ml-auto';
+        cancelBtn.textContent = 'Cancel';
+        cancelBtn.onclick = cancelInlineEdit;
+
+        const saveBtn = document.createElement('button');
+        saveBtn.className = 'btn-action text-xs px-3 py-1.5 text-white bg-white/[0.08] hover:bg-white/[0.14] rounded-lg border border-white/[0.08]';
+        saveBtn.textContent = 'Save';
+        saveBtn.onclick = () => saveInlineEdit(c.id);
+
+        actions.append(cancelBtn, saveBtn);
+      } else {
+        const votes = loadVotes();
+        const userVote = votes[c.id];
+
+        const likeBtn = document.createElement('button');
+        likeBtn.className = `btn-action flex items-center gap-1 text-[11px] px-2 py-1 transition-all ${userVote === 'like' ? 'like-active' : 'text-gray-500 hover:text-pink-400'}`;
+        likeBtn.innerHTML = `<span>&#9829;</span> <span>${c.likes}</span>`;
+        likeBtn.onclick = () => handleLike(c.id);
+
+        const dislikeBtn = document.createElement('button');
+        dislikeBtn.className = `btn-action flex items-center gap-1 text-[11px] px-2 py-1 transition-all ${userVote === 'dislike' ? 'dislike-active' : 'text-gray-500 hover:text-red-400'}`;
+        dislikeBtn.innerHTML = `<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M6 13l6 6 6-6"/></svg> <span>${c.dislikes}</span>`;
+        dislikeBtn.onclick = () => handleDislike(c.id);
+
+        const translateBtn = document.createElement('button');
+        translateBtn.className = 'btn-action flex items-center gap-1 text-[11px] px-2 py-1 text-gray-500 hover:text-gray-300 transition-all ml-auto';
+        translateBtn.textContent = 'Translate';
+        translateBtn.onclick = (e) => {
+          e.stopPropagation();
+          openLanguageDialog(c.id, c.text, c.lang, e.currentTarget);
+        };
+
+        actions.append(likeBtn, dislikeBtn, translateBtn);
+      }
+      card.appendChild(actions);
+
+      $commentsList.appendChild(card);
+
+      if (editingCommentId === c.id) {
+        requestAnimationFrame(() => focusInlineEditor(c.id));
+      }
+    }
+
+    function focusInlineEditor(id) {
+      const input = document.getElementById(`text-${id}`);
+      if (!input) return;
+      input.focus();
+      const selection = window.getSelection();
+      if (!selection) return;
+      const range = document.createRange();
+      range.selectNodeContents(input);
+      range.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+
+    function renderComments(newId = null) {
       const comments = loadComments() || [];
-      // Sort newest first
       const sorted = [...comments].sort((a, b) => b.timestamp - a.timestamp);
+      const latestId = sorted.length > 0 ? sorted[0].id : null;
 
       $commentCount.textContent = `${sorted.length} Comment${sorted.length !== 1 ? 's' : ''}`;
       $commentsList.innerHTML = '';
 
-      sorted.forEach((c, idx) => {
-        const card = document.createElement('div');
-        card.className = `bg-surface rounded-2xl border border-border p-5 space-y-3 shadow-md shadow-black/10 ${animate && idx === 0 ? 'comment-enter' : ''}`;
-        card.id = `comment-${c.id}`;
+      $commentsList.classList.remove('cols-1', 'cols-2', 'cols-3', 'cols-4');
+      const count = sorted.length;
+      const columns = getColumnCountForComments(count);
+      $commentsList.classList.add(`cols-${columns}`);
 
-        // --- Header: city + time ---
-        const header = document.createElement('div');
-        header.className = 'flex items-center justify-between text-xs text-gray-500';
-        header.innerHTML = `
-          <span class="flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5 text-accent" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
-            Posted from <strong class="text-gray-300 ml-0.5">${escapeHTML(c.city)}</strong>
-          </span>
-          <span>${relativeTime(c.timestamp)}</span>`;
-        card.appendChild(header);
+      if (count > VIRTUALIZATION_THRESHOLD) {
+        const listTop = $commentsList.getBoundingClientRect().top + window.scrollY;
+        const viewportTop = Math.max(0, window.scrollY - listTop);
+        const viewportRows = Math.ceil((window.innerHeight + VIRTUAL_ROW_HEIGHT * VIRTUAL_BUFFER_ROWS * 2) / VIRTUAL_ROW_HEIGHT);
+        const startRow = Math.max(0, Math.floor(viewportTop / VIRTUAL_ROW_HEIGHT) - VIRTUAL_BUFFER_ROWS);
+        const totalRows = Math.ceil(count / columns);
+        const endRow = Math.min(totalRows, startRow + viewportRows);
+        const startIndex = startRow * columns;
+        const endIndex = Math.min(count, endRow * columns);
 
-        // --- Comment text ---
-        const textEl = document.createElement('p');
-        textEl.className = 'text-gray-200 text-sm leading-relaxed whitespace-pre-wrap break-words';
-        textEl.id = `text-${c.id}`;
-        textEl.textContent = c.text;
-        card.appendChild(textEl);
+        const topSpacer = document.createElement('div');
+        topSpacer.style.gridColumn = '1 / -1';
+        topSpacer.style.height = `${startRow * VIRTUAL_ROW_HEIGHT}px`;
+        $commentsList.appendChild(topSpacer);
 
-        // --- Translation area (initially hidden) ---
-        const transBox = document.createElement('div');
-        transBox.id = `trans-${c.id}`;
-        transBox.className = 'hidden';
-        card.appendChild(transBox);
+        sorted.slice(startIndex, endIndex).forEach((c) => appendCommentCard(c, latestId, newId));
 
-        // --- Action buttons ---
-        const actions = document.createElement('div');
-        actions.className = 'flex items-center gap-1 pt-1 flex-wrap';
+        const bottomSpacer = document.createElement('div');
+        bottomSpacer.style.gridColumn = '1 / -1';
+        bottomSpacer.style.height = `${Math.max(0, (totalRows - endRow) * VIRTUAL_ROW_HEIGHT)}px`;
+        $commentsList.appendChild(bottomSpacer);
+        return;
+      }
 
-        // Like
-        const likeBtn = document.createElement('button');
-        likeBtn.className = 'btn-action flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-surfaceLight hover:bg-surfaceLighter text-gray-400 hover:text-pink-400 transition-colors';
-        likeBtn.innerHTML = `❤️ <span>${c.likes}</span>`;
-        likeBtn.onclick = () => handleLike(c.id);
+      sorted.forEach((c) => appendCommentCard(c, latestId, newId));
+    }
 
-        // Dislike
-        const dislikeBtn = document.createElement('button');
-        dislikeBtn.className = 'btn-action flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-surfaceLight hover:bg-surfaceLighter text-gray-400 hover:text-orange-400 transition-colors';
-        dislikeBtn.innerHTML = `👎 <span>${c.dislikes}</span>`;
-        dislikeBtn.onclick = () => handleDislike(c.id);
+    /* =========================================================
+       FLY-TO ANIMATION
+       ========================================================= */
+    function animateFlyTo(text, commentId) {
+      const inputRect = $commentInput.getBoundingClientRect();
 
-        // Translate
-        const translateBtn = document.createElement('button');
-        translateBtn.className = 'btn-action flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-surfaceLight hover:bg-surfaceLighter text-accent hover:text-accentHover transition-colors ml-auto';
-        translateBtn.innerHTML = `🌐 Translate`;
-        translateBtn.onclick = () => handleTranslate(c.id, c.text);
+      // Create ghost bubble at the input bar position
+      const ghost = document.createElement('div');
+      ghost.className = 'fly-ghost glass rounded-2xl p-4';
+      ghost.style.cssText = `
+        left: ${inputRect.left}px;
+        top: ${inputRect.top}px;
+        width: ${inputRect.width}px;
+        opacity: 1;
+        font-size: 14px;
+        color: #e5e7eb;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: ${inputRect.width}px;
+      `;
+      ghost.textContent = text;
+      document.body.appendChild(ghost);
 
-        actions.append(likeBtn, dislikeBtn, translateBtn);
-        card.appendChild(actions);
+      // Wait a frame, then render comments (with new one invisible)
+      requestAnimationFrame(() => {
+        renderComments(commentId);
 
-        $commentsList.appendChild(card);
+        // Find target card
+        const targetCard = document.getElementById(`comment-${commentId}`);
+        if (!targetCard) {
+          ghost.remove();
+          return;
+        }
+
+        const targetRect = targetCard.getBoundingClientRect();
+
+        // Animate ghost from input → target card position
+        ghost.style.transition = 'all 0.55s cubic-bezier(0.22, 1, 0.36, 1)';
+
+        requestAnimationFrame(() => {
+          ghost.style.left = `${targetRect.left}px`;
+          ghost.style.top = `${targetRect.top}px`;
+          ghost.style.width = `${targetRect.width}px`;
+          ghost.style.opacity = '0.6';
+        });
+
+        // After fly animation ends, reveal the real card and apply latest glow
+        setTimeout(() => {
+          ghost.remove();
+          targetCard.style.transition = 'opacity 0.3s, transform 0.3s';
+          targetCard.style.opacity = '1';
+          targetCard.style.transform = 'scale(1)';
+          targetCard.classList.add('latest-comment');
+          document.querySelectorAll('.latest-comment').forEach(el => {
+            if (el.id !== `comment-${commentId}`) el.classList.remove('latest-comment');
+          });
+        }, 560);
+      });
+    }
+
+    function closeAllCommentMenus() {
+      document.querySelectorAll('[id^="menu-"]').forEach((menu) => menu.classList.add('hidden'));
+    }
+
+    function toggleCommentMenu(id) {
+      const menu = document.getElementById(`menu-${id}`);
+      if (!menu) return;
+      const willOpen = menu.classList.contains('hidden');
+      closeAllCommentMenus();
+      if (willOpen) menu.classList.remove('hidden');
+    }
+
+    function renderLanguageOptions(query = '') {
+      const q = query.trim().toLowerCase();
+      const filtered = LANGUAGES.filter((lang) =>
+        !q || lang.name.toLowerCase().includes(q) || lang.code.toLowerCase().includes(q)
+      );
+      $langList.innerHTML = '';
+
+      filtered.forEach((lang) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'w-full text-left px-2 py-1.5 text-sm text-gray-300 hover:text-white transition-colors';
+        btn.innerHTML = `<span class="font-medium">${lang.name}</span> <span class="text-xs text-gray-500 ml-2 uppercase">${lang.code}</span>`;
+        btn.onclick = () => {
+          if (!pendingTranslate) return;
+          setPreferredLang(lang.code);
+          closeLanguageDialog();
+          performTranslation(pendingTranslate.id, pendingTranslate.originalText, pendingTranslate.sourceLang, lang.code);
+        };
+        $langList.appendChild(btn);
+      });
+
+      if (filtered.length === 0) {
+        $langList.innerHTML = '<p class="text-xs text-gray-500 px-2 py-2">No matching language found.</p>';
+      }
+    }
+
+    function positionLanguageMenu(anchorEl) {
+      const rect = anchorEl.getBoundingClientRect();
+      const menuWidth = 340;
+      const margin = 12;
+
+      const left = Math.max(margin, Math.min(rect.left, window.innerWidth - menuWidth - margin));
+      $langMenu.style.left = `${left}px`;
+
+      // place below by default; if it overflows, place above; always clamp inside viewport
+      const estimatedTop = rect.bottom + 8;
+      $langMenu.style.top = `${estimatedTop}px`;
+
+      const menuHeight = $langMenu.offsetHeight || 320;
+      let top = estimatedTop;
+
+      if (top + menuHeight > window.innerHeight - margin) {
+        top = rect.top - menuHeight - 8;
+      }
+      top = Math.max(margin, Math.min(top, window.innerHeight - menuHeight - margin));
+      $langMenu.style.top = `${top}px`;
+    }
+
+    function openLanguageDialog(id, originalText, sourceLang, anchorEl) {
+      pendingTranslate = { id, originalText, sourceLang };
+      closeAllCommentMenus();
+      $langMenu.classList.remove('hidden');
+      $langSearch.value = '';
+      renderLanguageOptions('');
+
+      // wait one frame for accurate menu height, then clamp into viewport
+      requestAnimationFrame(() => positionLanguageMenu(anchorEl));
+
+      setTimeout(() => $langSearch.focus(), 0);
+    }
+
+    function closeLanguageDialog() {
+      $langMenu.classList.add('hidden');
+    }
+
+    function scheduleVirtualizedRender() {
+      if (virtualRenderRaf) return;
+      virtualRenderRaf = requestAnimationFrame(() => {
+        virtualRenderRaf = null;
+        const count = (loadComments() || []).length;
+        if (count > VIRTUALIZATION_THRESHOLD) {
+          renderComments();
+        }
       });
     }
 
@@ -334,82 +886,224 @@
        ACTIONS
        ========================================================= */
 
-    /** Like a comment */
     function handleLike(id) {
+      const votes = loadVotes();
+      if (votes[id] === 'like') {
+        showToast('You already liked this.', 'info');
+        return;
+      }
       const comments = loadComments() || [];
       const c = comments.find(x => x.id === id);
       if (!c) return;
+
+      // If previously disliked, undo that dislike first
+      if (votes[id] === 'dislike') {
+        c.dislikes = Math.max(0, c.dislikes - 1);
+      }
+
       c.likes++;
+      votes[id] = 'like';
       saveComments(comments);
+      saveVotes(votes);
       renderComments();
+
+      // Pop animation on the button
+      const btn = document.querySelector(`#comment-${id} .like-active`);
+      if (btn) { btn.classList.add('vote-pop'); setTimeout(() => btn.classList.remove('vote-pop'), 400); }
     }
 
-    /** Dislike a comment – remove if dislikes >= 2 */
     function handleDislike(id) {
+      const votes = loadVotes();
+      if (votes[id] === 'dislike') {
+        showToast('You already disliked this.', 'info');
+        return;
+      }
       const comments = loadComments() || [];
       const idx = comments.findIndex(x => x.id === id);
       if (idx === -1) return;
+
+      // If previously liked, undo that like first
+      if (votes[id] === 'like') {
+        comments[idx].likes = Math.max(0, comments[idx].likes - 1);
+      }
+
       comments[idx].dislikes++;
+      votes[id] = 'dislike';
+
       if (comments[idx].dislikes >= 2) {
         comments.splice(idx, 1);
+        delete votes[id];
         saveComments(comments);
-        showToast('Comment auto-removed (2 dislikes)', 'warn');
+        saveVotes(votes);
+        showToast('Comment removed after 2 dislikes', 'warn');
         renderComments();
         return;
       }
       saveComments(comments);
+      saveVotes(votes);
+      renderComments();
+
+      const btn = document.querySelector(`#comment-${id} .dislike-active`);
+      if (btn) { btn.classList.add('vote-pop'); setTimeout(() => btn.classList.remove('vote-pop'), 400); }
+    }
+
+    function editComment(id) {
+      closeAllCommentMenus();
+      const comments = loadComments() || [];
+      const comment = comments.find((item) => item.id === id);
+      if (!comment) return;
+      if (comment.authorId && comment.authorId !== currentUserId) return;
+
+      editingCommentId = id;
+      editDraftText = comment.text;
+      renderComments();
+      requestAnimationFrame(() => focusInlineEditor(id));
+    }
+
+    function cancelInlineEdit() {
+      editingCommentId = null;
+      editDraftText = '';
       renderComments();
     }
 
-    /** Translate a comment using MyMemory API */
-    async function handleTranslate(id, originalText) {
-      const transBox = document.getElementById(`trans-${id}`);
-      if (!transBox) return;
+    function saveInlineEdit(id) {
+      const comments = loadComments() || [];
+      const comment = comments.find((item) => item.id === id);
+      if (!comment) return;
+      if (comment.authorId && comment.authorId !== currentUserId) return;
 
-      // Toggle: if already visible, hide it (show original)
-      if (!transBox.classList.contains('hidden')) {
-        transBox.classList.add('hidden');
+      const result = validateComment(editDraftText);
+      if (!result.valid) {
+        showToast(result.reason === 'empty' ? 'Comment cannot be empty.' : 'Special characters are not allowed.', 'error');
         return;
       }
 
-      const lang = getPreferredLang();
-      transBox.innerHTML = `<p class="text-xs text-gray-500 italic py-2">Translating…</p>`;
+      comment.text = editDraftText.trim();
+      comment.lang = detectLanguage(comment.text);
+      comment.editedAt = Date.now();
+      saveComments(comments);
+      editingCommentId = null;
+      editDraftText = '';
+      renderComments();
+      showToast('Comment updated.', 'success');
+    }
+
+    function deleteComment(id) {
+      closeAllCommentMenus();
+      const comments = loadComments() || [];
+      const idx = comments.findIndex((item) => item.id === id && (!item.authorId || item.authorId === currentUserId));
+      if (idx === -1) return;
+
+      comments.splice(idx, 1);
+      const votes = loadVotes();
+      delete votes[id];
+      saveComments(comments);
+      saveVotes(votes);
+      if (editingCommentId === id) {
+        editingCommentId = null;
+        editDraftText = '';
+      }
+      renderComments();
+    }
+
+    /** Translate using Google-first pipeline with fallbacks */
+    async function performTranslation(id, originalText, sourceLang, targetLang) {
+      const transBox = document.getElementById(`trans-${id}`);
+      if (!transBox) return;
+      const srcLang = sourceLang || detectLanguage(originalText);
+
+      if (srcLang === targetLang) {
+        showToast('Source and target language are the same.', 'info');
+        return;
+      }
+
+      transBox.innerHTML = `<p class="text-[11px] text-gray-600 italic py-2">Translating…</p>`;
       transBox.classList.remove('hidden');
 
       try {
-        const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(originalText)}&langpair=auto|${lang}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('API error');
-        const data = await res.json();
-        const translated = data.responseData?.translatedText;
-        if (!translated) throw new Error('No translation');
+        let translated = null;
+
+        // Method 1: Google Translate public endpoint (best quality for this setup)
+        try {
+          if (!translated) {
+            const gUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(originalText)}`;
+            const gRes = await fetch(gUrl);
+            if (gRes.ok) {
+              const gData = await gRes.json();
+              if (Array.isArray(gData) && Array.isArray(gData[0])) {
+                translated = gData[0].map((row) => row[0]).join('');
+              }
+            }
+          }
+        } catch {}
+
+        // Method 2: MyMemory with proper ISO codes
+        try {
+          if (!translated) {
+            const mmUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(originalText)}&langpair=${srcLang}|${targetLang}`;
+            const mmRes = await fetch(mmUrl);
+            if (mmRes.ok) {
+              const mmData = await mmRes.json();
+              if (mmData.responseStatus === 200 && mmData.responseData?.translatedText) {
+                const t = mmData.responseData.translatedText;
+                if (t !== originalText.toUpperCase() && t !== originalText) {
+                  translated = t;
+                }
+              }
+            }
+          }
+        } catch {}
+
+        // Method 3: Lingva fallback
+        if (!translated) {
+          try {
+            const lvUrl = `https://lingva.ml/api/v1/${srcLang}/${targetLang}/${encodeURIComponent(originalText)}`;
+            const lvRes = await fetch(lvUrl);
+            if (lvRes.ok) {
+              const lvData = await lvRes.json();
+              if (lvData.translation) translated = lvData.translation;
+            }
+          } catch {}
+        }
+
+        if (!translated) throw new Error('All translation methods failed');
 
         transBox.innerHTML = `
-          <div class="translated-box bg-surfaceLight rounded-xl px-4 py-3 mt-1 space-y-1">
-            <p class="text-xs font-semibold text-accent">Translated to ${LANG_NAMES[lang] || lang}:</p>
-            <p class="text-sm text-gray-200 leading-relaxed">${escapeHTML(translated)}</p>
+          <div class="translated-box glass-subtle rounded-xl px-3 py-2.5 mt-1 space-y-1">
+            <p class="text-[11px] font-medium text-gray-500">Translated to ${LANG_NAMES[targetLang] || targetLang}</p>
+            <p class="text-sm text-gray-300 leading-relaxed">${escapeHTML(translated)}</p>
             <button onclick="document.getElementById('trans-${id}').classList.add('hidden')"
-              class="text-xs text-gray-500 hover:text-gray-300 underline mt-1 transition-colors">Show original only</button>
+              class="text-[11px] text-gray-600 hover:text-gray-400 underline mt-1 transition-colors">Hide</button>
           </div>`;
       } catch {
         transBox.innerHTML = `
-          <div class="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 mt-1">
-            <p class="text-xs text-red-400">Translation temporarily unavailable. Please try again later.</p>
+          <div class="glass-subtle rounded-xl px-3 py-2.5 mt-1 border border-white/[0.04]">
+            <p class="text-[11px] text-gray-500">Translation unavailable right now.</p>
           </div>`;
       }
     }
 
-    /** Post a new comment */
+    /** Post a new comment with fly animation */
     function postComment() {
       const text = $commentInput.value;
-      if (!validateComment(text)) {
-        showToast('Blocked: Special characters not allowed for a clean environment', 'error');
+      const result = validateComment(text);
+      if (!result.valid) {
+        if (result.reason === 'empty') {
+          showToast('Type something first.', 'warn');
+        } else {
+          showToast('Special characters are not allowed.', 'error');
+        }
         $commentInput.focus();
         return;
       }
+
+      const detectedLang = detectLanguage(text);
+      const commentId = Date.now();
       const comment = {
-        id: Date.now(),
+        id: commentId,
         text: text.trim(),
+        lang: detectedLang,
+        authorId: currentUserId,
         city: userCity || 'Unknown City',
         timestamp: Date.now(),
         likes: 0,
@@ -418,18 +1112,12 @@
       const comments = loadComments() || [];
       comments.push(comment);
       saveComments(comments);
-      $commentInput.value = '';
-      updateCharCount();
-      showToast('Comment posted!', 'success');
-      renderComments(true);
-    }
 
-    /** Clear all comments */
-    function clearAll() {
-      if (!confirm('Remove all comments? This cannot be undone.')) return;
-      saveComments([]);
-      renderComments();
-      showToast('All comments cleared', 'info');
+      const flyText = text.trim();
+      $commentInput.value = '';
+
+      // Trigger fly animation
+      animateFlyTo(flyText, commentId);
     }
 
     /* =========================================================
@@ -441,23 +1129,16 @@
       return d.innerHTML;
     }
 
-    function updateCharCount() {
-      const len = $commentInput.value.length;
-      $charCount.textContent = `${len} / ${MAX_CHARS}`;
-      $charCount.classList.toggle('text-red-400', len > MAX_CHARS - 20);
-    }
-
     /* =========================================================
-       CITY DETECTION (once)
+       CITY DETECTION
        ========================================================= */
     async function detectCity() {
-      // Check if we already have it cached
       if (userCity) {
         $cityText.textContent = `Posting from ${userCity}`;
         return;
       }
       try {
-        const res = await fetch('http://ip-api.com/json');
+        const res = await fetch('https://ipapi.co/json/');
         const data = await res.json();
         userCity = data.city || 'Unknown City';
       } catch {
@@ -471,36 +1152,47 @@
        INIT
        ========================================================= */
     (function init() {
-      // Seed data on first visit
       if (!loadComments()) {
         saveComments(SEED_COMMENTS);
       }
 
-      // Restore preferred language
-      const savedLang = getPreferredLang();
-      $langSelect.value = savedLang;
+      $langSearch.addEventListener('input', (e) => renderLanguageOptions(e.target.value));
+      document.addEventListener('click', (e) => {
+        const target = e.target;
+        if (!(target instanceof HTMLElement)) return;
 
-      // Event listeners
-      $langSelect.addEventListener('change', (e) => setPreferredLang(e.target.value));
-      $commentInput.addEventListener('input', updateCharCount);
-      $postBtn.addEventListener('click', postComment);
-      $clearAllBtn.addEventListener('click', clearAll);
+        if (!$langMenu.contains(target)) {
+          closeLanguageDialog();
+        }
 
-      // Post on Ctrl+Enter / Cmd+Enter
+        if (!target.closest('[id^="menu-"]') && !target.classList.contains('menu-dot')) {
+          closeAllCommentMenus();
+        }
+      });
+
+      window.addEventListener('scroll', () => {
+        closeLanguageDialog();
+        closeAllCommentMenus();
+        scheduleVirtualizedRender();
+      }, { passive: true });
+
+      window.addEventListener('resize', () => {
+        scheduleVirtualizedRender();
+      });
+
+      $langMenu.addEventListener('click', (e) => e.stopPropagation());
+      $sendBtn.addEventListener('click', postComment);
+
+      // Send on Enter
       $commentInput.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        if (e.key === 'Enter') {
           e.preventDefault();
           postComment();
         }
       });
 
-      // Initial render
       renderComments();
-
-      // Detect city
       detectCity();
-
-      // Update relative times every 30s
       setInterval(() => renderComments(), 30000);
     })();
   </script>
